@@ -1,1 +1,1 @@
-bot: python3 app.py ${TOKEN}
+release: python3 app.py ${TOKEN}
