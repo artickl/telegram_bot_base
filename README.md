@@ -13,4 +13,10 @@ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%8
 curl https://cli-assets.heroku.com/install-ubuntu.sh | sudo sh
 heroky create
 heroku config:set TOKEN=#############:###########################
+heroku config:get TOKEN -s > .env
+
+Local run:
+heroku local
+
+Remote deploy:
 git push heroku main
