@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import logging
 import argparse
 from telegram import Update #pip install python-telegram-bot -U --pre
