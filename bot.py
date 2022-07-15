@@ -11,12 +11,25 @@ from telegram.ext import (
     CallbackContext,
 )
 
+import sys 
+import os
+sys.path.append(os.path.abspath("plugin/carwashforecast/"))
+from whenshouldiwashthecar import check_weather
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG
 )
 
-parser = argparse.ArgumentParser("bot")
-parser.add_argument("TOKEN", help="Telegram Token")
+print(os.environ.get('TOKEN'))
+print(os.environ.get('BROWSER'))
+print(os.getenv('type',100))
+print(os.environ)
+
+parser = argparse.ArgumentParser("bot.py")
+parser.add_argument("TOKEN", 
+        default=os.getenv('type',100),
+        help="Telegram Token")
+
 args = parser.parse_args()
 TOKEN = args.TOKEN
 
