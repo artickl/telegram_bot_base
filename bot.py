@@ -14,11 +14,19 @@ from telegram.ext import (
 
 import sys 
 import os
+import re
+
 from plugin.carwashforecast.whenshouldiwashthecar import (check_weather, wash_or_not_to_wash, prettify_wash)
+from plugin.u2ber.u2ber_downloader import (u2ber_download)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG
 )
+
+async def error(update: Update, context: CallbackContext):
+    """Log Errors caused by Updates."""
+    sys.stderr.write("ERROR: '%s' caused by '%s'" % context.error, update)
+    pass
 
 
 async def start(update: Update, context: CallbackContext.DEFAULT_TYPE):
@@ -48,12 +56,29 @@ async def carwash(update: Update, context: CallbackContext.DEFAULT_TYPE):
     #TODO: change key to variable
     #TODO: language from the message
     #TODO: get and pass the address... not address is "/wash"
-    weather_pops = await check_weather(update.message.text, "12c4f93fc60a4161b0685bad13519735", update.from.language_code) 
+    
+    # error in the line
+    ##weather_pops = await check_weather(update.message.text, "12c4f93fc60a4161b0685bad13519735", update.from.language_code) 
     wash = await wash_or_not_to_wash(weather_pops, 50, 3)
     pretty = await prettify_wash(wash)
     
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=pretty
+    )
+
+async def ytmp3(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    #TODO: download yt video from link, get audio only and send file back
+    
+    ytfile, ytsize = u2ber_download(re.sub('^/yt ', '', update.message.text), str(update.message.chat.id))
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text="File %s has been downloaded. Total size is %s Mb" % (ytfile,ytsize)
+    )
+
+    await context.bot.send_audio(
+        chat_id=update.effective_chat.id, 
+        audio=open(ytfile, 'rb')
     )
 
 
@@ -79,9 +104,7 @@ if __name__ == "__main__":
     application = ApplicationBuilder().token(TOKEN).build()
 
     start_handler = CommandHandler("start", start)
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-    caps_handler = CommandHandler("caps", caps)
-
+    
     #wash message:
     # 2022-08-21 21:26:04,894 - telegram.ext._application - DEBUG - Processing update {'update_id': 354593385, 'message': {'chat': {'id': 568454692, 'type': <ChatType.PRIVATE>, 'last_name': 'Zavyalov', 'first_name': 'Artem', 'username': 'artem_zavyalov'}, 'group_chat_created': False, 'entities': [], 'new_chat_members': [], 'location': {'longitude': -122.654552, 'latitude': 49.222349}, 'new_chat_photo': [], 'message_id': 147, 'delete_chat_photo': False, 'caption_entities': [], 'date': 1661142365, 'supergroup_chat_created': False, 'photo': [], 'channel_chat_created': False, 'from': {'is_bot': False, 'username': 'artem_zavyalov', 'first_name': 'Artem', 'last_name': 'Zavyalov', 'id': 568454692, 'language_code': 'en'}}}
     # 2022-10-01 20:59:18,110 - telegram.ext._application - DEBUG - Processing update {'update_id': 354593389, 'message': {'chat': {'id': 568454692, 'type': <ChatType.PRIVATE>, 'last_name': 'Zavyalov', 'first_name': 'Artem', 'username': 'artem_zavyalov'}, 'text': '/wash', 'group_chat_created': False, 'entities': [{'length': 5, 'type': <MessageEntityType.BOT_COMMAND>, 'offset': 0}], 'new_chat_members': [], 'new_chat_photo': [], 'message_id': 153, 'delete_chat_photo': False, 'caption_entities': [], 'date': 1664683156, 'supergroup_chat_created': False, 'photo': [], 'channel_chat_created': False, 'from': {'is_bot': False, 'username': 'artem_zavyalov', 'first_name': 'Artem', 'last_name': 'Zavyalov', 'id': 568454692, 'language_code': 'en'}}}
@@ -91,9 +114,15 @@ if __name__ == "__main__":
     # 2022-08-21 21:26:04,894 - telegram.ext._application - DEBUG - Processing update {'update_id': 354593385, 'message': {'chat': {'id': 568454692, 'type': <ChatType.PRIVATE>, 'last_name': 'Zavyalov', 'first_name': 'Artem', 'username': 'artem_zavyalov'}, 'group_chat_created': False, 'entities': [], 'new_chat_members': [], 'location': {'longitude': -122.654552, 'latitude': 49.222349}, 'new_chat_photo': [], 'message_id': 147, 'delete_chat_photo': False, 'caption_entities': [], 'date': 1661142365, 'supergroup_chat_created': False, 'photo': [], 'channel_chat_created': False, 'from': {'is_bot': False, 'username': 'artem_zavyalov', 'first_name': 'Artem', 'last_name': 'Zavyalov', 'id': 568454692, 'language_code': 'en'}}}
     # TODO
 
+    yt_handler = CommandHandler("yt", ytmp3)
+    yt_handler_link = MessageHandler(filters.Regex(r"^https\:\/\/www\.youtube\.com"), ytmp3)
+
     application.add_handler(start_handler)
-    application.add_handler(echo_handler)
-    application.add_handler(caps_handler)
     application.add_handler(carwash_handler)
+    application.add_handler(yt_handler)
+    application.add_handler(yt_handler_link)
+
+    application.add_error_handler(error)
+
 
     application.run_polling()
