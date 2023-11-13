@@ -1,3 +1,6 @@
 [submodule "plugin/carwashforecast"]
 	path = plugin/carwashforecast
 	url = https://github.com/artickl/carwashforecast.git
+[submodule "plugin/u2ber"]
+	path = plugin/u2ber
+	url = git@github.com:artickl/u2ber.git
