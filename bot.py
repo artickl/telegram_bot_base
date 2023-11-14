@@ -20,7 +20,12 @@ from plugin.carwashforecast.whenshouldiwashthecar import (check_weather, wash_or
 from plugin.u2ber.u2ber_downloader import (u2ber_download)
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", 
+    level=logging.DEBUG,
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ]
 )
 
 async def error(update: Update, context: CallbackContext):
@@ -49,6 +54,7 @@ async def caps(update: Update, context: CallbackContext):
 
 
 async def carwash(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    logging.info('Carwash command started')
     #TODO: 
     # move key to parameter
     # move percentage and days to chat settings with default settings
@@ -62,20 +68,23 @@ async def carwash(update: Update, context: CallbackContext.DEFAULT_TYPE):
     wash = await wash_or_not_to_wash(weather_pops, 50, 3)
     pretty = await prettify_wash(wash)
     
+    logging.info('Carwash command sending output')
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=pretty
     )
 
 async def ytmp3(update: Update, context: CallbackContext.DEFAULT_TYPE):
     #TODO: download yt video from link, get audio only and send file back
-    
+    logging.info('yt command started')
     ytfile, ytsize = u2ber_download(re.sub('^/yt ', '', update.message.text), str(update.message.chat.id))
 
+    logging.info('yt message sending')
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
         text="File %s has been downloaded. Total size is %s Mb" % (ytfile,ytsize)
     )
 
+    logging.info('yt audio sending')
     await context.bot.send_audio(
         chat_id=update.effective_chat.id, 
         audio=open(ytfile, 'rb')
@@ -84,6 +93,7 @@ async def ytmp3(update: Update, context: CallbackContext.DEFAULT_TYPE):
 
 if __name__ == "__main__":
 
+    logging.info('Main starting')
     ENV_TOKEN = os.environ.get('TOKEN') if os.environ.get('TOKEN') is not NONE else "need a token"
 
     parser = argparse.ArgumentParser("bot.py")
@@ -95,11 +105,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     TOKEN = args.token if args.token != "need a token" else ""
 
-
     if TOKEN == "":
         parser.print_help(sys.stderr)
         sys.exit(0)
-
 
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -115,14 +123,16 @@ if __name__ == "__main__":
     # TODO
 
     yt_handler = CommandHandler("yt", ytmp3)
-    yt_handler_link = MessageHandler(filters.Regex(r"^https\:\/\/www\.youtube\.com"), ytmp3)
+    yt_handler_link = MessageHandler(filters.Regex(r"^https\:\/\/www\.youtube\.com\/"), ytmp3)
+    yt_handler_link2= MessageHandler(filters.Regex(r"^https\:\/\/youtu.be\/"), ytmp3)
 
     application.add_handler(start_handler)
     application.add_handler(carwash_handler)
     application.add_handler(yt_handler)
     application.add_handler(yt_handler_link)
+    application.add_handler(yt_handler_link2)
 
     application.add_error_handler(error)
 
-
+    logging.info('main polling starting')
     application.run_polling()
