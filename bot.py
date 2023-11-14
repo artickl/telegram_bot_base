@@ -76,7 +76,7 @@ async def carwash(update: Update, context: CallbackContext.DEFAULT_TYPE):
 async def ytmp3(update: Update, context: CallbackContext.DEFAULT_TYPE):
     #TODO: download yt video from link, get audio only and send file back
     logging.info('yt command started')
-    ytfile, ytsize = u2ber_download(re.sub('^/yt ', '', update.message.text), str(update.message.chat.id))
+    ytfile, ytsize = u2ber_download(re.sub('^/yt ', '', update.message.text), "downloads/"+str(update.message.chat.id))
 
     logging.info('yt message sending')
     await context.bot.send_message(
