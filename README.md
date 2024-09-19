@@ -4,6 +4,8 @@ base for telegram bot, will try to make all extensions as a separate instances
 https://github.com/python-telegram-bot/python-telegram-bot
 pip install python-telegram-bot
 
+switching to https://pypi.org/project/yt-dlp/
+
 # GIT
 
 On first cloning:
