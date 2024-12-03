@@ -15,6 +15,7 @@ from telegram.ext import (
 import sys 
 import os
 import re
+from dotenv import load_dotenv
 
 from plugin.carwashforecast.whenshouldiwashthecar import (check_weather, wash_or_not_to_wash, prettify_wash)
 from plugin.u2ber.u2ber_downloader import (u2ber_download)
@@ -94,18 +95,28 @@ async def ytmp3(update: Update, context: CallbackContext.DEFAULT_TYPE):
 if __name__ == "__main__":
 
     logging.info('Main starting')
-    ENV_TOKEN = os.environ.get('TOKEN') if os.environ.get('TOKEN') is not NONE else "need a token"
+    load_dotenv()
+
+    ENV_TOKEN = os.environ.get('TOKEN')
+    ENV_F_TOKEN = os.getenv('TOKEN')
 
     parser = argparse.ArgumentParser("bot.py")
     parser.add_argument("-t", "--token",
             dest='token',
-            default=ENV_TOKEN,
+            default=None,
             help="Telegram Bot Token (can be used from environment by 'source .env')")
 
     args = parser.parse_args()
-    TOKEN = args.token if args.token != "need a token" else ""
 
-    if TOKEN == "":
+    print(f"{ENV_TOKEN=}, {ENV_F_TOKEN=}, {args.token=}")
+    
+    if args.token is not None:
+        TOKEN = args.token
+    elif ENV_TOKEN is not None:
+        TOKEN = ENV_TOKEN
+    elif ENV_F_TOKEN is not None:
+        TOKEN = ENV_F_TOKEN
+    else:
         parser.print_help(sys.stderr)
         sys.exit(0)
 
