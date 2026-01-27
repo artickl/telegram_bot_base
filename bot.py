@@ -107,7 +107,7 @@ async def tts(update: Update, context: CallbackContext.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, 
         text="Preparing the recording..."
     )
-    #!pip install torchaudio chatterbox-tts torch ffmpeg ffmpeg-python
+    #!pip install torchaudio chatterbox-tts torch ffmpeg ffmpeg-python peft
     import torchaudio as ta
     import torch
     import time
@@ -136,15 +136,17 @@ async def ttsaz(update: Update, context: CallbackContext.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, 
         text="Preparing the recording..."
     )
-    #!pip install torchaudio chatterbox-tts torch ffmpeg ffmpeg-python
+    #!pip install torchaudio chatterbox-tts torch ffmpeg ffmpeg-python peft
     import torchaudio as ta
     import torch
     import time
     from chatterbox.tts import ChatterboxTTS
+    from pydub import AudioSegment
 
     # Automatically detect the best available device
     
     ttsfile= f"downloads/{str(update.message.chat.id)}/ttsaz-{time.time()}.wav"
+    ttsmp3=f"{ttsfile[:-4]}.mp3"
     device = "cuda" if torch.cuda.is_available() else "cpu"    
     model = ChatterboxTTS.from_pretrained(device=device)
     text = re.sub('^/aztts ', '', update.message.text)
@@ -152,10 +154,14 @@ async def ttsaz(update: Update, context: CallbackContext.DEFAULT_TYPE):
     wav = model.generate(text, audio_prompt_path=AUDIO_PROMPT_PATH)
     ta.save(ttsfile, wav, model.sr)
 
+    #converting wav to mp3
+    wav_audio = AudioSegment.from_file(ttsfile, format="wav")
+    wav_audio.export(ttsmp3, format="mp3")
+
     logging.info('TTS audio sending')
     await context.bot.send_audio(
         chat_id=update.effective_chat.id, 
-        audio=open(ttsfile, 'rb')
+        audio=open(ttsmp3, 'rb')
     )
 
 
